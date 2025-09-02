@@ -1,9 +1,9 @@
 from flask import Flask
-from configuracion import Config
+from config import Config
 
 #Creo la app
 app = Flask(__name__)
-app.config.from_object(Config)
+app.config.from_object(Config) # Pido que la app se configure desde el objeto Config
 
 
 #Ruta de Prueba
