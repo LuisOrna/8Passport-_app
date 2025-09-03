@@ -1,19 +1,19 @@
 #Dependencias
-from flask import Flask, request, render_template
-from flask_sqlalchemy import SQLAlchemy
-from config import Config
-import bcrypt
+from flask import Flask, request, render_template #Para construir servidor
+from flask_sqlalchemy import SQLAlchemy #Para manejar base de datos
+from config import Config #Archivo de config
+from database import db
+import bcrypt #Para hash
 
 
 #Creo la app
 app = Flask(__name__)
 app.config.from_object(Config) # Pido que la app se configure desde el objeto Config
 
-#Creo el objeto para hablar con la base de datos
-db = SQLAlchemy(app)
+#Conecto la Base de Datos a aqui
+db.init_app(app)
 
-#Importo del modelo 
-
+from models.user import User
 
 #Ruta de Prueba
 @app.route('/')
@@ -25,9 +25,23 @@ def home():
 @app.route('/login', methods = ['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        email = request.form['email']
-        password = request.form['password']
-        return f'Login exitoso {email}'
+        email_ingresado = request.form['email']
+        password_ingresada = request.form['password']
+        
+        #Bosco al uaurio que quiere logearse en la db
+        usuario = User.query.filter_by(email=email_ingresado).first()
+
+        #Si no coincide el correo electronico
+        if not usuario:
+            return "Email o contrasenha incorrectos"
+        
+        #Si hay un usuario aplico esto
+        if usuario and bcrypt.checkpw(password_ingresada.encode('utf-8'), usuario.password.encode('utf-8')):
+            print(usuario)
+            return f'Login exitoso, bienvenido {usuario.nombre}'
+        else:
+            return "Email o contrasenha incorrectos"
+    
     
     #Cuando el methodo no es POST, es decir que es GET
     return render_template('login.html')
@@ -57,6 +71,7 @@ def registrar_usuario():
     return render_template('register.html')
     
 if __name__ == "__main__":
-    from models.user import User
+    #TODO Importo del modelo, lo hago aqui para evitar el error de circulo Vicioso 
+    
     app.run(debug=True)
 

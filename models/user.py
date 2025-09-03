@@ -1,8 +1,9 @@
 #Dependencias
-from app import db
+from database import db
 
 #Creo la clase
 class User(db.Model): #aprovecho y traigo una clase padre
+    #Logica de SQLAlchemy
     id = db.Column(db.Integer, primary_key = True)
     email = db.Column(db.String(50), unique = True, nullable = False)
     password = db.Column(db.String(255), nullable = False)
@@ -16,5 +17,5 @@ class User(db.Model): #aprovecho y traigo una clase padre
         
 #Para mostrar al usuario
     def __repr__(self):
-        return f'<User {self.email}>'
+        return f'<User {self.email}, nombre {self.nombre}>'
     
