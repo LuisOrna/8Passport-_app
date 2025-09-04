@@ -1,5 +1,5 @@
 #Dependencias
-from flask import Flask, request, render_template #Para construir servidor
+from flask import Flask, request, render_template, session, redirect #Para construir servidor
 from flask_sqlalchemy import SQLAlchemy #Para manejar base de datos
 from config import Config #Archivo de config
 from database import db
@@ -37,8 +37,13 @@ def login():
         
         #Si hay un usuario aplico esto
         if usuario and bcrypt.checkpw(password_ingresada.encode('utf-8'), usuario.password.encode('utf-8')):
-            print(usuario)
-            return f'Login exitoso, bienvenido {usuario.nombre}'
+            #Creo la sesion
+            session['id'] = usuario.id
+            session['name'] = usuario.nombre
+            #Redirijo al Dashboard
+            return render_template('dashboard.html', 
+                                   nombre_usuario = session['name'],
+                                   numero_de_usuario = session['id'])
         else:
             return "Email o contrasenha incorrectos"
     
@@ -69,9 +74,28 @@ def registrar_usuario():
     
     #Cuando no sea el metodo POST
     return render_template('register.html')
+
+
+#Ruta para el DASHBOARD
+@app.route('/dasboard', methods = ['GET'])
+def dashboard():
+
+    if 'id' not in session:
+        return redirect('/login')
+        
+    #Si llega a aqui esta verificado    
+    return render_template('dashboard.html', 
+                                   nombre_usuario = session['name'],
+                                   numero_de_usuario = session['id'])
     
+#Ruta para logout
+@app.route('/logout', methods = ['POST'])
+def logout():
+    session.clear() #Borra la sesion
+    return redirect('/login')
+
+
 if __name__ == "__main__":
     #TODO Importo del modelo, lo hago aqui para evitar el error de circulo Vicioso 
-    
     app.run(debug=True)
 
