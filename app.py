@@ -3,16 +3,20 @@ from flask import Flask, request, render_template, session, redirect #Para const
 from flask_sqlalchemy import SQLAlchemy #Para manejar base de datos
 from config import Config #Archivo de config
 from database import db
-'''from functools import wraps #Este me va a ayudar a decorar, aplicar logica comun a varios puntos'''
 from blueprints.auth import auth_bp
 from blueprints.admin import admin_bp
+from flask_jwt_extended import JWTManager
 
 #Creo la app
 app = Flask(__name__)
-app.config.from_object(Config) # Pido que la app se configure desde el objeto Config
-
+# Pido que la app se configure desde el objeto Config
+app.config.from_object(Config) 
 #Conecto la Base de Datos a aqui
 db.init_app(app)
+
+#Inicio de de JWT
+jwt = JWTManager(app)
+
 
 #Conexion de la app al blueprint auth
 app.register_blueprint(auth_bp)

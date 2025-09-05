@@ -2,6 +2,7 @@ from flask import Blueprint, request, render_template, session, redirect
 from database import db
 from models.user import User
 import bcrypt #Para hash
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 
 #Creo el blueprint
 auth_bp = Blueprint('auth', __name__)
@@ -74,3 +75,33 @@ def registrar_usuario():
 def logout():
     session.clear() #Borra la sesion
     return redirect('/login')
+
+
+#==========JWT=====================================
+
+#Ruta login con JWT
+@auth_bp.route('/api/login', methods = ['POST'])
+def api_login():
+
+    data = request.get_json()
+    email = data['email']
+    password = data['password']
+
+    usuario = User.query.filter_by(email=email).first()
+
+    if usuario and bcrypt.checkpw(password.encode('utf-8'), usuario.password.encode('utf-8')):
+        #Si se valida, creo el token 
+        access_token = create_access_token(identity=str(usuario.id)) #si no es str da error
+        return {'access_token': access_token, 'user_name': usuario.nombre}
+    
+    #si no se valida
+    return {'error': "credenciales de ingreso incorrectas"}, 401
+
+
+#Ruta protegida con JWT
+@auth_bp.route('/api/protected', methods = ['GET'])
+@jwt_required()
+def protegida():
+    usuario_actual = get_jwt_identity()  #Obtengo la identidad del que entro
+    usuario = User.query.get(usuario_actual) #Obtengo el User relacionado con esa identidad
+    return {'mensaje': f'Hola {usuario.nombre}, tienes acceso'} #Le muestro el mensaje personalizado
