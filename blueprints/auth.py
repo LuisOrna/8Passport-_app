@@ -1,0 +1,76 @@
+from flask import Blueprint, request, render_template, session, redirect
+from database import db
+from models.user import User
+import bcrypt #Para hash
+
+#Creo el blueprint
+auth_bp = Blueprint('auth', __name__)
+
+
+#RUTA PARA LOGIN
+@auth_bp.route('/login', methods = ['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        email_ingresado = request.form['email']
+        password_ingresada = request.form['password']
+                #Bosco al uaurio que quiere logearse en la db
+        usuario = User.query.filter_by(email=email_ingresado).first()
+
+        #Si no coincide el correo electronico
+        if not usuario:
+            return "Email o contrasenha incorrectos"
+        
+        #Si hay un usuario aplico esto
+        if usuario and bcrypt.checkpw(password_ingresada.encode('utf-8'), usuario.password.encode('utf-8')):
+            #Creo la sesion
+            session['id'] = usuario.id
+            session['name'] = usuario.nombre
+            #Agrego el role a la session
+            session['role'] =usuario.role
+
+            #Redirijo al Dashboard
+            return render_template('dashboard.html', 
+                                   nombre_usuario = session['name'],
+                                   numero_de_usuario = session['id'],
+                                   role = session['role'])
+        else:
+            return "Email o contrasenha incorrectos"
+    
+    
+    #Cuando el methodo no es POST, es decir que es GET
+    return render_template('login.html')
+
+
+
+#RUTA PARA REGISTRO
+@auth_bp.route('/register', methods = ['GET', 'POST'])
+def registrar_usuario():
+    if request.method == 'POST':
+        nombre = request.form['name']
+        email = request.form['email']
+        password = request.form['password']
+
+        #TEMPORAL para role
+        role = 'admin' if 'admin' in email else 'usuario'
+
+
+        #Hago el hashing de la contrasenha --> la variable almacenada esta hasheada pero ademas encodeada
+        password_hasheada = bcrypt.hashpw(password= password.encode('utf-8'), salt=bcrypt.gensalt()) #Con el metodo que estoy aplicando en sal el mismo password produce un hash diferente cada vez
+        
+        #Creo el usuario    
+        nuevo_usuario = User(email=email, password=password_hasheada.decode('utf-8'), nombre=nombre, role=role)
+
+        #Lo guardo en la base de datos
+        db.session.add(nuevo_usuario)
+        db.session.commit()
+
+        return f'Usuario {nombre} registrado correctamente'
+    
+    #Cuando no sea el metodo POST
+    return render_template('register.html')
+
+#RUTA PARA LOGOUT
+@auth_bp.route('/logout', methods = ['POST'])
+def logout():
+    session.clear() #Borra la sesion
+    return redirect('/login')

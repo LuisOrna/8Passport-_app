@@ -9,6 +9,17 @@
 <body>
     <h2>Bienvenido {{ nombre_usuario }}</h2>
     <p>Tu ID de Usuario es: {{ numero_de_usuario }}</p>
+    <p>Tu rol es: <strong>{{ role }}</strong></p>
+
+    {% if role == 'admin' %}
+        <h3>Panel de Administrador</h3>
+        <p>Solo los administradores pueden ver esta parte</p>
+        <a href="/admin">Ir a panel de Administrador</a>
+
+    {% else %}
+        <h3>Panel de Ususrio</h3>
+        <p>Contenido para usuarios</p>
+    {% endif %}
     <br><br><br><br>
 
     <form action="/logout" method="post">

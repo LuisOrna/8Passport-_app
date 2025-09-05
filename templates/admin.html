@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Panel Admin - PassPort</title>
+</head>
+<body>
+    <h1>Panel de Administración</h1>
+    <h2>Usuarios Registrados:</h2>
+    
+    <table border="2">
+        <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Email</th>
+            <th>Rol</th>
+        </tr>
+        {% for usuario in usuarios %}
+        <tr>
+            <td>{{ usuario.id }}</td>
+            <td>{{ usuario.nombre }}</td>
+            <td>{{ usuario.email }}</td>
+            <td>{{ usuario.role }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <br><br><br>
+    <a href="/dashboard">Volver al Dashboard</a>
+</body>
+</html>
