@@ -9,6 +9,7 @@
 <body>
     <h2>Iniciar Sesion</h2>
     <form action="/login" method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"> <!--Esta linea me ayuda a que se genere un campo oculto-->
         <input type="email" name="email" placeholder="Email" required>
         <br><br>
         <input type="password" name="password" placeholder="contrasenha" required>

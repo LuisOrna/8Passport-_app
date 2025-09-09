@@ -6,9 +6,13 @@ from database import db
 from blueprints.auth import auth_bp
 from blueprints.admin import admin_bp
 from flask_jwt_extended import JWTManager
+from flask_wtf.csrf import CSRFProtect  #Agregado para la proteccion CSRF
+
 
 #Creo la app
 app = Flask(__name__)
+#Le aplico la proteccion a la App
+csrf = CSRFProtect(app)
 # Pido que la app se configure desde el objeto Config
 app.config.from_object(Config) 
 #Conecto la Base de Datos a aqui

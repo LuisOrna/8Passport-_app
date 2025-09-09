@@ -2,7 +2,8 @@ from flask import Blueprint, request, render_template, session, redirect, jsonif
 from database import db
 from models.user import User
 import bcrypt #Para hash
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity 
+from flask import render_template_string #Para hacer Escape
 
 #Creo el blueprint
 auth_bp = Blueprint('auth', __name__)
@@ -65,7 +66,7 @@ def registrar_usuario():
         db.session.add(nuevo_usuario)
         db.session.commit()
 
-        return f'Usuario {nombre} registrado correctamente'
+        return render_template_string('Ususario {{ nombre }} registrado correctamente', nombre= nombre)
     
     #Cuando no sea el metodo POST
     return render_template('register.html')

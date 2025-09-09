@@ -10,6 +10,8 @@
     <h2>Datos Rereridos</h2>
         <form action="/register" method="post">
             
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
             <input type="text" name="name" placeholder="Nombre" required>
             <br><br>
             <input type="text" name="email" placeholder="correo" required>

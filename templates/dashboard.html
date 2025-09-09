@@ -23,6 +23,7 @@
     <br><br><br><br>
 
     <form action="/logout" method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">  <!-- Para operar con la libreria Flask-WTF -->
         <button type="submit">Cerrar Sesion</button>
     </form>
 </body>
