@@ -1,4 +1,4 @@
-from flask import Blueprint, request, render_template, session, redirect
+from flask import Blueprint, request, render_template, session, redirect, jsonify
 from database import db
 from models.user import User
 import bcrypt #Para hash
@@ -99,9 +99,39 @@ def api_login():
 
 
 #Ruta protegida con JWT
-@auth_bp.route('/api/protected', methods = ['GET'])
+@auth_bp.route('/api/users', methods = ['GET'])
 @jwt_required()
 def protegida():
     usuario_actual = get_jwt_identity()  #Obtengo la identidad del que entro
     usuario = User.query.get(usuario_actual) #Obtengo el User relacionado con esa identidad
-    return {'mensaje': f'Hola {usuario.nombre}, tienes acceso'} #Le muestro el mensaje personalizado
+
+    #Hago la solicitud para traer todos los datos de db
+    usuarios = User.query.all()
+
+    #Convierto el usuarios que es un objeto en una lista de usurios
+    usuarios_lista = []
+    for usuario in usuarios:
+        usuarios_dict = {
+            'id': usuario.id,
+            'email': usuario.email,
+            'nombre': usuario.nombre
+        }
+        usuarios_lista.append(usuarios_dict)
+
+    return jsonify(usuarios_lista)
+
+
+#Ruta protegida con JWT para eliminar usuario
+@auth_bp.route('/api/users/<int:user_id>', methods = ['DELETE']) #Flask toma el numero y se lo pasa a la funcion
+@jwt_required()
+def delete_user(user_id):
+    #1 Buscar el usuario con id
+    usuario_para_eliminar = User.query.filter_by(id = user_id).first()
+    #2 que pasa cuando no hay usurio
+    if not usuario_para_eliminar:
+        return {'Error': 'Numero de Id ingresado no existe'}
+    #3 Si llega aqui existe, como lo elimino de db
+    db.session.delete(usuario_para_eliminar)
+    db.session.commit()
+    #Mensaje que envio de regreso
+    return {'hecho': f'usuario {usuario_para_eliminar.nombre} con id {usuario_para_eliminar.id} eliminado'}
