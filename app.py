@@ -13,6 +13,8 @@ from flask_wtf.csrf import CSRFProtect  #Agregado para la proteccion CSRF
 app = Flask(__name__)
 #Le aplico la proteccion a la App
 csrf = CSRFProtect(app)
+# Excluir rutas API de CSRF
+csrf.exempt('blueprints.auth.api_login')
 # Pido que la app se configure desde el objeto Config
 app.config.from_object(Config) 
 #Conecto la Base de Datos a aqui
