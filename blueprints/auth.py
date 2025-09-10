@@ -4,9 +4,43 @@ from models.user import User
 import bcrypt #Para hash
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity 
 from flask import render_template_string #Para hacer Escape
+from datetime import datetime, timedelta
 
 #Creo el blueprint
 auth_bp = Blueprint('auth', __name__)
+
+#Para controlar numero de intentos
+intentos_fallidos = {}
+MAX_INTENTOS = 3
+TIEMPO_BLOQUEO = 15  
+
+def esta_bloqueado(email):
+    if email not in intentos_fallidos:
+        return False
+    
+    data = intentos_fallidos[email]
+    # Si es bloqueado, verifico si ya paso el tiempo
+    if 'bloqueado_hasta' in data:
+        if datetime.now() < data['bloqueado_hasta']:
+            return True
+        else:
+            
+            del intentos_fallidos[email]
+    return False
+
+def agregar_intento_fallido(email):
+    if email not in intentos_fallidos:
+        intentos_fallidos[email] = {'count': 0}
+    
+    intentos_fallidos[email]['count'] += 1
+    
+    if intentos_fallidos[email]['count'] >= MAX_INTENTOS:
+        # Bloquear por 15 minutos
+        intentos_fallidos[email]['bloqueado_hasta'] = datetime.now() + timedelta(minutes=TIEMPO_BLOQUEO)
+
+def limpiar_intentos(email):
+    if email in intentos_fallidos:
+        del intentos_fallidos[email]
 
 
 #RUTA PARA LOGIN
@@ -15,16 +49,24 @@ def login():
     if request.method == 'POST':
         email_ingresado = request.form['email']
         password_ingresada = request.form['password']
-                #Bosco al uaurio que quiere logearse en la db
+        
+        if esta_bloqueado(email_ingresado):
+            return "Cuenta bloqueada. Demasiados intentos fallidos."
+        
+        #Bosco al uaurio que quiere logearse en la db
         usuario = User.query.filter_by(email=email_ingresado).first()
 
         #Si no coincide el correo electronico
         if not usuario:
+            agregar_intento_fallido(email_ingresado)
             return "Email o contrasenha incorrectos"
         
         #Si hay un usuario aplico esto
         if usuario and bcrypt.checkpw(password_ingresada.encode('utf-8'), usuario.password.encode('utf-8')):
+            limpiar_intentos(email_ingresado)
+            
             #Creo la sesion
+            session.permanent = True  #activo tiempo de vida configurado
             session['id'] = usuario.id
             session['name'] = usuario.nombre
             #Agrego el role a la session
@@ -36,6 +78,7 @@ def login():
                                    numero_de_usuario = session['id'],
                                    role = session['role'])
         else:
+            agregar_intento_fallido(email_ingresado)
             return "Email o contrasenha incorrectos"
     
     
@@ -51,8 +94,18 @@ def registrar_usuario():
         nombre = request.form['name']
         email = request.form['email']
         password = request.form['password']
+        if len(password) < 6:
+            return "Password debe tener al menos 6 caracteres"
 
-        #TEMPORAL para role
+        #Valido nombre
+        if not nombre or nombre.strip() == "":
+            return "Nombre es obligatorio"
+        
+        # Valido email básico
+        if "@" not in email or "." not in email:
+            return "Email debe tener formato válido"
+
+        # para rol
         role = 'admin' if 'admin' in email else 'usuario'
 
 

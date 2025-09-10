@@ -29,6 +29,14 @@ app.register_blueprint(auth_bp)
 app.register_blueprint(admin_bp)
 
 
+#Headers de seguridad
+@app.after_request
+def security_headers(response): 
+    response.headers['X-Content-Type-Options'] = 'nosniff' #contra ataques de tipo MIME sniffing
+    response.headers['X-Frame-Options'] = 'DENY' #Protege contra clickjacking
+    return response
+
+
 #Ruta de Prueba
 @app.route('/')
 def home():
