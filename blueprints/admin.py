@@ -3,6 +3,9 @@ from flask import Blueprint, render_template, session, redirect
 from database import db
 from models.user import User
 
+
+
+
 #Creo el blueprint
 admin_bp = Blueprint(name='admin', import_name=__name__)
 
@@ -26,4 +29,4 @@ def mostrar_adminpanel():
     #Si llega a aqui paso ambos filtros es un Admin
     usuarios = User.query.all()
     return render_template('admin.html', usuarios = usuarios)
-    
+

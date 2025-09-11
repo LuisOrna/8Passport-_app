@@ -5,6 +5,7 @@ import bcrypt #Para hash
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity 
 from flask import render_template_string #Para hacer Escape
 from datetime import datetime, timedelta
+from config import ADMIN_EMAILS
 
 #Creo el blueprint
 auth_bp = Blueprint('auth', __name__)
@@ -66,17 +67,14 @@ def login():
             limpiar_intentos(email_ingresado)
             
             #Creo la sesion
-            session.permanent = True  #activo tiempo de vida configurado
+            session.permanent = True  #activo tiempo de vida config
             session['id'] = usuario.id
             session['name'] = usuario.nombre
             #Agrego el role a la session
             session['role'] =usuario.role
 
             #Redirijo al Dashboard
-            return render_template('dashboard.html', 
-                                   nombre_usuario = session['name'],
-                                   numero_de_usuario = session['id'],
-                                   role = session['role'])
+            return redirect('/dashboard')
         else:
             agregar_intento_fallido(email_ingresado)
             return "Email o contrasenha incorrectos"
@@ -106,8 +104,7 @@ def registrar_usuario():
             return "Email debe tener formato válido"
 
         # para rol
-        role = 'admin' if 'admin' in email else 'usuario'
-
+        role = 'admin' if email in ADMIN_EMAILS else 'usuario'
 
         #Hago el hashing de la contrasenha --> la variable almacenada esta hasheada pero ademas encodeada
         password_hasheada = bcrypt.hashpw(password= password.encode('utf-8'), salt=bcrypt.gensalt()) #Con el metodo que estoy aplicando en sal el mismo password produce un hash diferente cada vez
@@ -131,6 +128,7 @@ def logout():
     return redirect('/login')
 
 
+'''
 #==========JWT=====================================
 
 #Ruta login con JWT
@@ -188,4 +186,4 @@ def delete_user(user_id):
     db.session.delete(usuario_para_eliminar)
     db.session.commit()
     #Mensaje que envio de regreso
-    return {'hecho': f'usuario {usuario_para_eliminar.nombre} con id {usuario_para_eliminar.id} eliminado'}
+    return {'hecho': f'usuario {usuario_para_eliminar.nombre} con id {usuario_para_eliminar.id} eliminado'}'''

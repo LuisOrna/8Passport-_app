@@ -11,3 +11,5 @@ class Config:
     SESSION_COOKIE_SAMESITE = 'Strict' #solo envia al mismo sitio
     # Tiempo de expiración
     PERMANENT_SESSION_LIFETIME = timedelta(hours=2)  # 2 horas
+
+ADMIN_EMAILS = ['admin@email.com']
